@@ -4,7 +4,7 @@ const fs = require('fs');
 const csv = require('csv-parser'); // Pour lire le CSV
 const bodyParser = require('body-parser'); // Pour gérer les données des formulaires
 const fastCsv = require('fast-csv'); // Pour écrire dans un CSV
-const path = require('path'); // Pour gérer les chemins de fichiers
+const path = require('path'); // Pour gérer les chemins
 
 // Créer une instance de l'application Express
 const app = express();
@@ -13,43 +13,33 @@ app.use(express.urlencoded({ extended: true })); // Pour traiter les données de
 
 // Définir le moteur de vues à EJS
 app.set('view engine', 'ejs'); // On va utiliser EJS pour rendre le HTML dynamique
+app.set('views', path.join(__dirname, 'views')); // Indique où se trouve le dossier des vues
 
 // Route pour afficher le tableau
 app.get('/', (req, res) => {
   let results = [];
-  const filePath = path.join(__dirname, 'data.csv'); // Utiliser __dirname pour le chemin du fichier
 
   // Lire le fichier CSV avec le point-virgule comme séparateur
-  fs.createReadStream(filePath)
+  fs.createReadStream('data.csv')
     .pipe(csv({ separator: ';' })) // Spécifie le séparateur
     .on('data', (data) => results.push(data)) // Ajouter chaque ligne dans le tableau results
     .on('end', () => {
       // Envoyer les données CSV à la vue
       res.render('index', { data: results }); // Rendre la vue 'index.ejs'
-    })
-    .on('error', (err) => {
-      console.error('Erreur lors de la lecture du fichier CSV:', err);
-      res.status(500).send('Erreur lors de la lecture du fichier CSV.');
     });
 });
 
 // Route pour mettre à jour une ligne du CSV
 app.post('/update-row', (req, res) => {
   const { index, updatedData } = req.body; // Récupérer l'index et les données modifiées
+
   let results = [];
-  const filePath = path.join(__dirname, 'data.csv'); // Utiliser __dirname pour le chemin du fichier
 
   // Lire le fichier CSV actuel
-  fs.createReadStream(filePath)
+  fs.createReadStream('data.csv')
     .pipe(csv({ separator: ';' })) // Spécifie le séparateur
     .on('data', (data) => results.push(data)) // Ajouter chaque ligne dans le tableau results
     .on('end', () => {
-      // Vérifier que l'index est valide
-      if (index < 0 || index >= results.length) {
-        console.error('Index invalide:', index);
-        return res.status(400).json({ success: false, message: 'Index invalide.' });
-      }
-
       // Modifier la ligne correspondant à l'index
       results[index]['Terme anglais'] = updatedData[0]; // Mettre à jour l'anglais
       results[index]['Terme français'] = updatedData[1]; // Mettre à jour le français
@@ -62,27 +52,18 @@ app.post('/update-row', (req, res) => {
       results[index]['Terme lié'] = updatedData[8]; // Mettre à jour terme lié
 
       // Créer un nouveau CSV contenant uniquement les lignes modifiées
-      const ws = fs.createWriteStream(path.join(__dirname, 'data_modifie.csv')); // Utiliser __dirname
+      const ws = fs.createWriteStream('data_modifie.csv');
       fastCsv
         .write(results, { headers: true, delimiter: ';' }) // Écrire les résultats dans data_modifie.csv avec le point-virgule comme délimiteur
-        .pipe(ws)
-        .on('finish', () => {
-          res.json({ success: true }); // Répondre avec succès
-        })
-        .on('error', (err) => {
-          console.error('Erreur lors de l\'écriture du fichier CSV:', err);
-          res.status(500).json({ success: false, message: 'Erreur lors de l\'écriture du fichier CSV.' });
-        });
-    })
-    .on('error', (err) => {
-      console.error('Erreur lors de la lecture du fichier CSV:', err);
-      res.status(500).send('Erreur lors de la lecture du fichier CSV.');
+        .pipe(ws);
+
+      res.json({ success: true }); // Répondre avec succès
     });
 });
 
 // Route pour télécharger le fichier CSV modifié
 app.get('/download-csv', (req, res) => {
-  const file = path.join(__dirname, 'data_modifie.csv'); // Utiliser __dirname pour le chemin du fichier modifié
+  const file = `${__dirname}/data_modifie.csv`; // Chemin du fichier modifié
   res.download(file); // Lien de téléchargement pour le fichier modifié
 });
 
