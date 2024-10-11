@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau CSV</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        button {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tableau des données CSV</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Erme anglais</th>
+                <th>Terme français</th>
+                <th>Variant anglais</th>
+                <th>Variant français</th>
+                <th>Définition anglaise</th>
+                <th>Définition française</th>
+                <th>Note anglaise</th>
+                <th>Note française</th>
+                <th>Terme lié</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% data.forEach(function(row, index) { %>
+                <tr>
+                    <td><%= row['erme anglais'] %></td>
+                    <td><%= row['Terme français'] %></td>
+                    <td><%= row['Variant anglais'] %></td>
+                    <td><%= row['Variant français'] %></td>
+                    <td><%= row['Definition anglaise'] %></td>
+                    <td><%= row['Définition française'] %></td>
+                    <td><%= row['Note anglaise'] %></td>
+                    <td><%= row['Note française'] %></td>
+                    <td><%= row['Terme lié'] %></td>
+                    <td><button onclick="editRow(<%= index %>)">Edit</button></td>
+                </tr>
+            <% }); %>
+        </tbody>
+    </table>
+
+    <button onclick="downloadCSV()">Télécharger le CSV modifié</button>
+
+    <script>
+        function editRow(index) {
+            const row = document.querySelectorAll('tbody tr')[index];
+            const cells = row.querySelectorAll('td');
+
+            // Transformer les cellules en input pour édition
+            for (let i = 0; i < cells.length - 1; i++) {
+                const value = cells[i].innerText;
+                cells[i].innerHTML = `<input type="text" value="${value}" />`;
+            }
+
+            // Ajouter un bouton "Save"
+            cells[cells.length - 1].innerHTML = `<button onclick="saveRow(${index})">Save</button>`;
+        }
+
+        function saveRow(index) {
+            const row = document.querySelectorAll('tbody tr')[index];
+            const inputs = row.querySelectorAll('input');
+
+            const updatedData = [];
+            inputs.forEach(input => updatedData.push(input.value));
+
+            fetch('/update-row', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ index, updatedData }),
+            }).then(response => response.json()).then(data => {
+                if (data.success) {
+                    location.reload(); // Recharger la page après sauvegarde
+                }
+            });
+        }
+
+        function downloadCSV() {
+            window.location.href = '/download-csv';
+        }
+    </script>
+</body>
+</html>
