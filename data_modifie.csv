@@ -1,5 +1,5 @@
-﻿Terme anglais;Terme français;Variant anglais;Variant français;Definition anglaise;Définition française;Note anglaise;Note française;Terme lié
-abbreviation;abréviation;;;;;;;
+Terme anglais;Terme français;Variant anglais;Variant français;Definition anglaise;Définition française;Note anglaise;Note française;Terme lié
+abbreviations;abréviation;;;;;;;
 AbLang;AbLang;;;A language model for antibodies (https://github.com/oxpig/AbLang).;Modèle de langue sur les anticorps. (Loterre);;;
 ablation study;étude d'ablation;;;An ablation study investigates the performance of an AI system by removing certain components to understand the contribution of the component to the overall system. (Wikipedia);;;;
 ablative;ablatif;ablative form;cas ablatif;;;;;
