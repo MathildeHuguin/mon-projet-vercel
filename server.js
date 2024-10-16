@@ -15,12 +15,16 @@ app.use(express.urlencoded({ extended: true })); // Pour traiter les données de
 app.set('view engine', 'ejs'); // On va utiliser EJS pour rendre le HTML dynamique
 app.set('views', path.join(__dirname, 'views')); // Indique où se trouve le dossier des vues
 
+// Définir les chemins pour les fichiers CSV
+const csvFilePath = path.join(__dirname, 'data.csv'); // Chemin vers data.csv
+const modifiedCsvFilePath = path.join(__dirname, 'data_modifie.csv'); // Chemin vers data_modifie.csv
+
 // Route pour afficher le tableau
 app.get('/', (req, res) => {
   let results = [];
 
   // Lire le fichier CSV avec le point-virgule comme séparateur
-  fs.createReadStream('data.csv')
+  fs.createReadStream(csvFilePath) // Utilise le chemin défini pour data.csv
     .pipe(csv({ separator: ';' })) // Spécifie le séparateur
     .on('data', (data) => results.push(data)) // Ajouter chaque ligne dans le tableau results
     .on('end', () => {
@@ -36,7 +40,7 @@ app.post('/update-row', (req, res) => {
   let results = [];
 
   // Lire le fichier CSV actuel
-  fs.createReadStream('data.csv')
+  fs.createReadStream(csvFilePath) // Utilise le chemin défini pour data.csv
     .pipe(csv({ separator: ';' })) // Spécifie le séparateur
     .on('data', (data) => results.push(data)) // Ajouter chaque ligne dans le tableau results
     .on('end', () => {
@@ -52,7 +56,7 @@ app.post('/update-row', (req, res) => {
       results[index]['Terme lié'] = updatedData[8]; // Mettre à jour terme lié
 
       // Créer un nouveau CSV contenant uniquement les lignes modifiées
-      const ws = fs.createWriteStream('data_modifie.csv');
+      const ws = fs.createWriteStream(modifiedCsvFilePath); // Utilise le chemin défini pour data_modifie.csv
       fastCsv
         .write(results, { headers: true, delimiter: ';' }) // Écrire les résultats dans data_modifie.csv avec le point-virgule comme délimiteur
         .pipe(ws);
@@ -63,7 +67,7 @@ app.post('/update-row', (req, res) => {
 
 // Route pour télécharger le fichier CSV modifié
 app.get('/download-csv', (req, res) => {
-  const file = `${__dirname}/data_modifie.csv`; // Chemin du fichier modifié
+  const file = modifiedCsvFilePath; // Chemin du fichier modifié
   res.download(file); // Lien de téléchargement pour le fichier modifié
 });
 
